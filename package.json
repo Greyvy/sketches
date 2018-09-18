@@ -1,0 +1,18 @@
+{
+  "name": "sketches",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas-sketch": "0.0.15",
+    "seed-random": "^2.2.0",
+    "simplex-noise": "^2.4.0",
+    "vec-la": "^1.5.0"
+  }
+}
