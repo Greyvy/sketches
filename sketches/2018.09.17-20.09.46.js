@@ -1,4 +1,5 @@
 let canvasSketch = require('canvas-sketch')
+let seed = require('seed-random')
 
 let settings = {
     animate: true,
@@ -6,26 +7,108 @@ let settings = {
     dimensions: [ 1024, 1024 ]
 }
 
-let sketch = () => {
+let sketch = ({ width, height }) => {
 
     const PI = Math.PI
     const TAU = PI * 2
+
+    let seed_value = Math.floor(Math.random() * 1000)
+    let rand = seed(seed_value)
+
+    let draw_mirror = (ctx, callback) => {
+        ctx.save()
+        callback()
+        ctx.restore()
+
+        ctx.save()
+        ctx.translate(width, 0)
+        ctx.scale(-1, 1)
+        callback()
+        ctx.restore()
+
+        ctx.save()
+        ctx.translate(0, height)
+        ctx.scale(1, -1)
+        callback()
+        ctx.restore()
+
+        ctx.save()
+        ctx.translate(width, height)
+        ctx.scale(-1, -1)
+        callback()
+        ctx.restore()
+    }
+
+
+    let blob_spawn = (x, y) => {
+        return {
+            pos: [x, y],
+            size: Math.floor(rand() * 32),
+            vel: [-rand() * 8, -rand() * 8]
+        }
+    }
+
+    let blobs_update = (ctx, playhead, a) => {
+        for (let i = 0; i < a.length; ++i) {
+            let b = a[i]
+
+            b.pos[0] += b.vel[0]
+            b.pos[1] += b.vel[1]
+
+            if (b.pos[0] < -64 || b.pos[1] < -64) {
+                a[i] = blob_spawn(width * 0.5, height * 0.5)
+            }
+
+            draw_mirror(ctx, function() {
+                ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
+                // ctx.translate(width * 0.25, height * 0.25)
+                // ctx.rotate(playhead * PI)
+                ctx.beginPath()
+                ctx.arc(b.pos[0], b.pos[1], b.size, 0, TAU)
+                ctx.closePath()
+                ctx.fill()
+            })
+
+            /*
+            ctx.save()
+            ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
+            ctx.beginPath()
+            ctx.arc(b.pos[0], b.pos[1], b.size, 0, TAU)
+            ctx.closePath()
+            ctx.fill()
+            ctx.restore()
+            */
+
+        }
+    }
+
+    let blobs = []
+
 
     return ({ context: ctx, width, height, playhead }) => {
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, width, height)
 
+        /*
         ctx.fillStyle = 'hsla(0, 50%, 50%, 1)'
         ctx.fillRect(0, 0, width * 0.5, height * 0.5)
+        */
 
-        let n = 4
-        for (let i = 0; i <= n; ++i) {
-            let t = Math.sin(playhead * PI)
-            ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
-            ctx.fillRect(width * 0.125 * i * t, height * 0.125 * i, 16, 16)
+        if (blobs.length < 160) {
+            blobs.push(blob_spawn((width / 2) * playhead, height / 2))
         }
+        /*
+        ctx.translate(width * 0.25, height * 0.25)
+        ctx.rotate(playhead * TAU)
+        */
+        blobs_update(ctx, playhead, blobs)
 
 
+        /*
+         * @NOTE(Grey): Trying out just mirroring all the drawing operations
+         * instead, a little less generic, but better performance
+         **/
+        /*
         // @NOTE(Grey) First flip, horizontal to the right half
         let d = ctx.getImageData(0, 0, width * 0.5, height * 0.5)
         let f = ctx.createImageData(d)
@@ -64,6 +147,7 @@ let sketch = () => {
         }
 
         ctx.putImageData(r, 0, height / 2)
+        */
 
 
     }
