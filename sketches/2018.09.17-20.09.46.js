@@ -95,7 +95,7 @@ let sketch = ({ width, height }) => {
         */
 
         if (blobs.length < 160) {
-            blobs.push(blob_spawn((width / 2) * playhead, height / 2))
+            blobs.push(blob_spawn(width / 2, height / 2))
         }
         /*
         ctx.translate(width * 0.25, height * 0.25)
