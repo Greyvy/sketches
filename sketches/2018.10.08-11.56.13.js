@@ -47,7 +47,7 @@ let sketch = ({ width, height }) => {
 
             ctx.save()
             ctx.translate(...p)
-            ctx.rotate(Math.pow(Math.sin(t * PI / 2), i / n + 1) * PI)
+            ctx.rotate(Math.pow(Math.sin(t * PI / 2), p[1] * 0.5) * PI)
             ctx.lineCap = 'round'
             ctx.lineWidth = width * 0.005
             ctx.beginPath()
