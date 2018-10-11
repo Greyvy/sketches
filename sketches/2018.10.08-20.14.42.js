@@ -12,7 +12,7 @@ let sketch = ({ width, height }) => {
     const PI = Math.PI
     const TAU = PI * 2
 
-    let seed_value = 42 // Math.floor(Math.random() * 1000)
+    let seed_value = Math.floor(Math.random() * 1000)
     let rand = seed(seed_value)
 
     let stride = 8
@@ -26,14 +26,51 @@ let sketch = ({ width, height }) => {
         points.push([x, y])
     }
 
-    let lines = []
+    let current_cell = 0
+    let previous_side = 0
+    let side_options = [0, 1, 2, 3]
+    let lines = [{index: current_cell, point: [rand() * size, 0]}]
     for (let i = 0; i < n; ++i) {
-        let x = rand() * size
-        let y = rand() * size
-        lines.push([
-            x, i % 2 === 0 ? 0 : size,
-            i % 2 === 0 ? size : 0, y
-        ])
+
+        let result
+        let pick = side_options.filter((v) => {
+            let x = current_cell % stride
+            let y = Math.floor(current_cell / stride)
+            let top    = y === 0 ? 0 : null
+            let right  = x === stride ? 1 : null
+            let bottom = y === stride ? 2 : null
+            let left   = x === 0 ? 3 : null
+            return (v !== previous_side) && (v !== top)
+                && (v !== right) && (v !== bottom) && (v !== left)
+        })
+        let side = pick[Math.floor(rand() * pick.length)]
+
+        // @NOTE(Grey): Its pretty interesting if I remove the
+        // size scaler from the rand() calls
+        if (side === 0) {
+            current_cell = current_cell - stride
+            result = {index: current_cell, point: [rand() * size, 0]}
+            previous_side = 0
+        } // 'top'
+        if (side === 1) {
+            current_cell = current_cell + 1
+            result = {index: current_cell, point: [size, rand() * size]}
+            previous_side = 1
+        } // 'right'
+        if (side === 2) {
+            current_cell = current_cell + stride
+            result = {index: current_cell, point: [rand() * size, size]}
+            previous_side = 2
+        } // 'bottom'
+        if (side === 3) {
+            current_cell = current_cell - 1
+            result = {index: current_cell, point: [0, rand() * size]}
+            previous_side = 3
+        } // 'left'
+
+
+
+        lines.push(result)
     }
 
     return ({ context: ctx, width, height, playhead }) => {
@@ -49,40 +86,54 @@ let sketch = ({ width, height }) => {
             let y = p[1]
 
             ctx.save()
-            ctx.strokeStyle = 'hsla(0, 0%, 80%, 1)'
+            ctx.lineWidth = 1
+            ctx.strokeStyle = 'hsla(0, 0%, 60%, 1)'
             ctx.translate(-size / 2, -size / 2)
             ctx.strokeRect(x, y, size, size)
             ctx.restore()
 
         }
 
+
+        ctx.save()
+        ctx.strokeStyle = 'hsla(0, 0%, 20%, 1)'
+        ctx.lineWidth = 8
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
         for (let i = 0; i < lines.length; ++i) {
-            let p = points[i]
             let l = lines[i]
+            let x = (margin +
+                (l.index % stride) * size) + l.point[0]
+            let y = (margin +
+                Math.floor(l.index / stride) * size) + l.point[1]
 
-            ctx.save()
-            ctx.translate(p[0] - size / 2, p[1] - size / 2)
+            if (i === 0) {
+                ctx.moveTo(x, y)
+            } else {
+                ctx.lineTo(x, y)
+            }
+        }
+        ctx.stroke()
+        ctx.restore()
 
-            /*
-             * debug
+        /*
+         * Debug
+        for (let i = 0; i < lines.length; ++i) {
+            let l = lines[i]
+            let x = (margin +
+                (l.index % stride) * size) + l.point[0]
+            let y = (margin +
+                Math.floor(l.index / stride) * size) + l.point[1]
             ctx.save()
-            ctx.fillStyle = 'hsla(50, 50%, 50%, 1)'
+            ctx.fillStyle = 'hsla(10, 90%, 50%, 0.5)'
             ctx.beginPath()
-            ctx.arc(l[0], i % 2 === 0 ? 0 : size, 4, 0, TAU)
+            ctx.arc(x, y, 8, 0, TAU)
             ctx.closePath()
             ctx.fill()
             ctx.restore()
-            */
-
-            ctx.save()
-            ctx.beginPath()
-            ctx.moveTo(l[0], l[1])
-            ctx.lineTo(l[2], l[3])
-            ctx.stroke()
-            ctx.restore()
-
-            ctx.restore()
         }
+         */
 
     }
 }
