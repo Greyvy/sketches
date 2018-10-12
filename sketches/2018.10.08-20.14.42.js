@@ -15,7 +15,7 @@ let sketch = ({ context: ctx, width, height }) => {
     let seed_value = Math.floor(Math.random() * 1000)
     let rand = seed(seed_value)
 
-    let stride = 8
+    let stride = 24
     let margin = 64
     let n = stride * stride
     let size = (width - margin * 2) / stride
@@ -96,7 +96,7 @@ let sketch = ({ context: ctx, width, height }) => {
 
         ctx.save()
         ctx.strokeStyle = 'hsla(0, 0%, 20%, 1)'
-        ctx.lineWidth = 8
+        ctx.lineWidth = 1
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.beginPath()
