@@ -7,7 +7,7 @@ let settings = {
     dimensions: [ 1024, 1024 ]
 }
 
-let sketch = ({ width, height }) => {
+let sketch = ({ context: ctx, width, height }) => {
 
     const PI = Math.PI
     const TAU = PI * 2
@@ -29,9 +29,8 @@ let sketch = ({ width, height }) => {
     let current_cell = 0
     let previous_side = 0
     let side_options = [0, 1, 2, 3]
-    let lines = [{index: current_cell, point: [rand() * size, 0]}]
+    let lines = [{index: current_cell, point: [rand() * size, size]}]
     for (let i = 0; i < n; ++i) {
-
         let result
         let pick = side_options.filter((v) => {
             let x = current_cell % stride
@@ -44,27 +43,28 @@ let sketch = ({ width, height }) => {
                 && (v !== right) && (v !== bottom) && (v !== left)
         })
         let side = pick[Math.floor(rand() * pick.length)]
+        let scale = size
 
         // @NOTE(Grey): Its pretty interesting if I remove the
         // size scaler from the rand() calls
         if (side === 0) {
             current_cell = current_cell - stride
-            result = {index: current_cell, point: [rand() * size, 0]}
+            result = {index: current_cell, point: [rand() * scale, 0]}
             previous_side = 0
         } // 'top'
         if (side === 1) {
             current_cell = current_cell + 1
-            result = {index: current_cell, point: [size, rand() * size]}
+            result = {index: current_cell, point: [scale, rand() * scale]}
             previous_side = 1
         } // 'right'
         if (side === 2) {
             current_cell = current_cell + stride
-            result = {index: current_cell, point: [rand() * size, size]}
+            result = {index: current_cell, point: [rand() * scale, scale]}
             previous_side = 2
         } // 'bottom'
         if (side === 3) {
             current_cell = current_cell - 1
-            result = {index: current_cell, point: [0, rand() * size]}
+            result = {index: current_cell, point: [0, rand() * scale]}
             previous_side = 3
         } // 'left'
 
@@ -74,11 +74,10 @@ let sketch = ({ width, height }) => {
     }
 
     return ({ context: ctx, width, height, playhead }) => {
+
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, width, height)
-
         for (let i = 0; i < n; ++i) {
-            let t = playhead
             let p = points[i]
 
             let size = (width - margin * 2) / stride * 0.85
@@ -87,13 +86,13 @@ let sketch = ({ width, height }) => {
 
             ctx.save()
             ctx.lineWidth = 1
-            ctx.strokeStyle = 'hsla(0, 0%, 60%, 1)'
+            ctx.globalCompositeOperation = 'multiply'
+            ctx.fillStyle = 'hsla(0, 0%, 95%, 1)'
             ctx.translate(-size / 2, -size / 2)
-            ctx.strokeRect(x, y, size, size)
+            ctx.fillRect(x, y, size, size)
             ctx.restore()
 
         }
-
 
         ctx.save()
         ctx.strokeStyle = 'hsla(0, 0%, 20%, 1)'
@@ -101,7 +100,8 @@ let sketch = ({ width, height }) => {
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.beginPath()
-        for (let i = 0; i < lines.length; ++i) {
+        let len = Math.floor(playhead * lines.length)
+        for (let i = 0; i < len; ++i) {
             let l = lines[i]
             let x = (margin +
                 (l.index % stride) * size) + l.point[0]
@@ -133,7 +133,7 @@ let sketch = ({ width, height }) => {
             ctx.fill()
             ctx.restore()
         }
-         */
+        */
 
     }
 }
