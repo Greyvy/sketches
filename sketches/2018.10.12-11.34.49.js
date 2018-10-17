@@ -31,11 +31,6 @@ let sketch = () => {
         let n = stride * stride
 
         for (let i = 0; i < n; ++i) {
-            // let x = margin + (i / n * (width - (margin * 2))) +
-                // (Math.sin(playhead * TAU * 4) * 16)
-            // let y = Math.floor(i / stride) * height * Math.pow(playhead, (i / n + 1) * 2) +
-                // (Math.cos(playhead * TAU * 4) * 32)
-
             let grid_size = ((width * 2 - margin * 2) / stride)
             let offset = grid_size + grid_size / 2
             let x = margin + (i % stride) * grid_size + grid_size / 2 +
