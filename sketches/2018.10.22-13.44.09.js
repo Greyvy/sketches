@@ -18,31 +18,36 @@ let sketch = ({width, height}) => {
 
     let l = 1
     let lights = []
-    for (let i = 0; i <= l; ++i) {
-        let x = width/2+Math.cos(i/l*TAU)*(width/2-128)
-        let y = width/2+Math.sin(i/l*TAU)*(width/2-128)
+    for (let i = 0; i < l; ++i) {
+        let x = width/2+Math.cos(i/l+1*TAU)*(width/2-64)
+        let y = width/2+Math.sin(i/l+1*TAU)*(width/2-64)
         lights.push({
             pos: [x, y],
             size: [width*0.0125, width*0.0125]
         })
     }
 
-    let n = 16
+    let n = 64
     let walls = []
     for (let i = 0; i <= n; ++i) {
         walls.push({
             pos: [
-                width*0.125+rand()*width*0.75,
-                height*0.125+rand()*height*0.75
+                // 128+(width-256)*(0.25+rand()*0.5),
+                // 128+(height-256)*(0.25+rand()*0.5)
+                128+(width-256)*(0.25+rand()*0.5), 0
             ],
             size: [
-                width*(rand()*0.125),
-                height*(rand()*0.125)
+                width*(0.00125+(rand()*0.0125)),
+                height*(0.00125+(rand()*0.0125))
+            ],
+            offset: [
+                128+(width-256)*(0.25+rand()*0.5),
+                128+(height-256)*(0.25+rand()*0.5)
             ]
         })
     }
 
-    let shadows = []
+    let shadows = new Array(n*2)
 
     return ({ context: ctx, width, height, playhead }) => {
         ctx.fillStyle = 'hsla(0, 0%, 65%, 1)'
@@ -56,17 +61,14 @@ let sketch = ({width, height}) => {
                 let half_width = wall.size[0]/2
                 let half_height = wall.size[1]/2
 
-
-                let p0 = vec.sub(wall.pos, vec.scale(wall.size, 0.5))
-
                 let points = [
                     vec.sub(wall.pos, vec.scale(wall.size, 0.5)),
                     [
-                        wall.pos[0]-wall.size[0]/2,
-                        wall.pos[1]+wall.size[1]/2
+                        wall.pos[0]-half_width,
+                        wall.pos[1]+half_height
                     ],[
-                        wall.pos[0]+wall.size[0]/2,
-                        wall.pos[1]-wall.size[1]/2
+                        wall.pos[0]+half_width,
+                        wall.pos[1]-half_height
                     ],
                     vec.add(wall.pos, vec.scale(wall.size, 0.5))
                 ]
@@ -96,6 +98,7 @@ let sketch = ({width, height}) => {
 
                 let result = options[biggest_dot[0]]
 
+                /*
                 ctx.save()
                 ctx.fillStyle = 'hsla(0, 0%, 65%, 1)'
                 ctx.beginPath()
@@ -105,21 +108,23 @@ let sketch = ({width, height}) => {
                 ctx.closePath()
                 ctx.fill()
                 ctx.restore()
+                */
 
-                shadows.push(result[0])
-                shadows.push(result[1])
+                shadows[i+i] = result[0]
+                shadows[i+i+1] = result[1]
 
             }
         }
 
         for (let i = 0; i < shadows.length; i += 2) {
+            let shadow = shadows[i]
             ctx.save()
             ctx.fillStyle = 'hsla(0, 0%, 5%, 1)'
             ctx.beginPath()
-            ctx.moveTo(...shadows[i])
+            ctx.moveTo(...shadow)
             ctx.lineTo(
                 ...vec.add(
-                    shadows[i],
+                    shadow,
                     vec.scale(
                         vec.norm(vec.sub(shadows[i], lights[0].pos)),
                         900
@@ -152,6 +157,9 @@ let sketch = ({width, height}) => {
                 wall.size[1]
             )
             ctx.restore()
+            // wall.pos[0] = Math.sin(playhead*PI)*wall.offset[0]
+            // wall.pos[1] = height*0.5+Math.sin(playhead*TAU)*(wall.offset[1]*0.5)
+            wall.pos[1] = wall.offset[1]
         }
 
         for (let i = 0; i < lights.length; ++i) {
@@ -165,9 +173,9 @@ let sketch = ({width, height}) => {
             ctx.fill()
             ctx.restore()
 
-            // let n = i/lights.length
-            // light.pos[0] = half+Math.sin(playhead*TAU+(n*PI))*(half-128)
-            // light.pos[1] = half+Math.cos(playhead*TAU+(i*PI))*(half-128)
+            let n = i/lights.length
+            light.pos[0] = half+Math.sin(playhead*TAU+(n*PI))*(half-128)
+            light.pos[1] = half+Math.cos(playhead*TAU+(i*PI))*(half-128)
         }
 
     }
