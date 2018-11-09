@@ -199,7 +199,7 @@ let sketch = ({ context, width, height }) => {
     let maps = [
         mapper_new({
             ctx: context,
-            number_of_rooms: 15,
+            number_of_rooms: 35,
             room_sizes: [32, 24, 16],
             color: col(0, 0, 100),
             room_weights: [40, 40, 40],
@@ -207,7 +207,7 @@ let sketch = ({ context, width, height }) => {
         }),
         mapper_new({
             ctx: context,
-            number_of_rooms: 15,
+            number_of_rooms: 35,
             room_sizes: [32, 32, 32],
             color: col(0, 0, 100),
             room_weights: [8, 40, 20],
@@ -215,7 +215,7 @@ let sketch = ({ context, width, height }) => {
         }),
         mapper_new({
             ctx: context,
-            number_of_rooms: 15,
+            number_of_rooms: 35,
             room_sizes: [32, 64, 128],
             color: col(0, 0, 100),
             room_weights: [60, 60, 20],
