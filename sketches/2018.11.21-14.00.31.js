@@ -44,7 +44,7 @@ let sketch = ({ context, width, height }) => {
 
     return ({ context, width, height, frame, totalFrames, playhead }) => {
 
-        context.fillStyle = col(0, 0, 1)
+        context.fillStyle = col(0, 0, 0)
         context.fillRect(0, 0, width, height)
 
         /*
@@ -66,25 +66,35 @@ let sketch = ({ context, width, height }) => {
         }
         */
 
-        let s = 64
+        context.save()
+        context.translate(x, y)
+        let s = 8
         let n = 32
         for (let i = 0; i <= s; ++i) {
             let q = i/s;
-            context.save()
-            context.translate(x, y)
-            let min = width*(0.125+q*1)
-            let max = width*0.095
+
+            let min = width*(0.025+q)
+            let max = width*0.0095
+
+            let rp = point.bind(this, min, max, Math.pow(Math.sin(playhead*PI), 12))
+            let tune = 0.25+Math.sin(playhead*PI)
+
+            context.rotate(0)
+            context.beginPath()
+
+            context.moveTo(...rp(0, tune))
             for (let r = 0; r <= n; ++r) {
-                // context.rotate((r/n)*PI)
                 let t = r/n
-                let p = point(min, max, Math.sin(playhead*PI), (i/s)*PI, 4)
-                context.fillStyle = col(0, 0, clamp(1-t, 0, 1))
-                context.strokeStyle = col(0, 0, clamp(t, 0, 1))
-                circle(context, ...p, 2+t*24)
-                context.stroke()
+                context.rotate(TAU/n)
+
+                context.strokeStyle = col(0, 0, 1)
+                context.lineTo(...rp(t*TAU, tune))
             }
-            context.restore()
+            context.closePath()
+            context.stroke()
+
         }
+        context.restore()
 
 
     }
