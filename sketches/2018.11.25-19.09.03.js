@@ -12,7 +12,7 @@ let sketch = ({ context, width, height }) => {
 
     const PI = Math.PI
     const TAU = PI * 2
-    const seed_value = 42
+    const seed_value = Math.floor(Math.random()*1000)
 
     let clamp = (v, min, max) => v < min ? min : v > max ? max : v
     let lerp = (v0, v1, t) => (1-t)*v0+t*v1
@@ -46,9 +46,8 @@ let sketch = ({ context, width, height }) => {
         return result
     }
 
-    let curve_wobble = (playhead, c, i) => {
-        let r = i+playhead*(i%2 === 0 ? TAU : -TAU)*(1+i)
-        return vec.add(vec.rotate(vec.scale(vec.norm(c), 60), r), c)
+    let curve_wobble = (a, r, c) => {
+        return vec.add(vec.rotate(vec.scale(vec.norm(c), r), a), c)
     }
 
     let curve_draw = (ctx, cp, i, arr) => {
@@ -75,29 +74,22 @@ let sketch = ({ context, width, height }) => {
 
     let ease_table = t => 1-Math.pow(Math.max(0, Math.abs(t)*2-1), 2)
 
-    let curve = [
-        [width*0.25, height*0.65],
-        [width*0.5, height*0.35],
-        [width*0.75, height*0.65]
-    ]
-
     let n = 8*2
-    let curves = []
+    let points = []
     for (let i = 0; i <= n; ++i) {
         let t = i/n
         let r = i%2 === 0 ? width*0.20 : width*0.25
         let x = width*0.5+Math.cos(t*TAU)*r
         let y = height*0.5+Math.sin(t*TAU)*r
-        curves.push([x, y])
+        points.push([x, y])
     }
 
-    let c_curves = []
-    for (let i = 1; i < curves.length; i+=2) {
-        c_curves.push([curves[i-1], curves[i], curves[i+1]])
-    }
+    let warp = Array(points.length)
+        .fill(0)
+        .map(v => rand())
 
     return ({ frame, totalFrames, playhead }) => {
-        context.fillStyle = col(0, 0, 0.9)
+        context.fillStyle = col(0, 0, 0)
         context.fillRect(0, 0, width, height)
 
         /*
@@ -116,12 +108,24 @@ let sketch = ({ context, width, height }) => {
         }
         */
 
-        // @TODO(Grey): Wobble the control points `(i%2 === 1)` in ze loop
+        pts = points.map((v, i) => {
+            let r = map(warp[i], 0, 1, 8, 256)
+            let rot = map(Math.floor(warp[i]), 0, 1, 1, 2)
+            let a = i+playhead*TAU*rot
+            return i%2 === 1 ? curve_wobble(a, r, v) : v
+            // return curve_wobble(a, r, v)
+        })
+        let curves = []
+        for (let i = 1; i < pts.length; i+=2) {
+            curves.push([pts[i-1], pts[i], pts[i+1]])
+        }
 
+        /*
         context.fillStyle = col(0, 0, 0.75)
-        curves.forEach((v, i) => {
+        pts.forEach((v, i) => {
             let t = map(clamp(playhead, 0.15, 0.85), 0.15, 0.85, -1, 1)
             let e = ease_table(t)
+
             context.save()
             context.translate(...v)
             context.scale(e, e)
@@ -129,16 +133,20 @@ let sketch = ({ context, width, height }) => {
             context.fill()
             context.restore()
         })
+        */
 
         context.save()
-        context.fillStyle = col(0, 0, 0)
-        context.strokeStyle = col(0, 0, 0)
-        for (let i = 0; i < c_curves.length; ++i) {
-            let cc = c_curves[i]
-            let c = curve_points(32, cc[0], cc[1], cc[2])
-            // c.forEach(curve_draw_points.bind(this, context))
-            c.forEach(curve_draw.bind(this, context))
-        }
+        let t = map(clamp(playhead, 0.15, 0.85), 0.15, 0.85, -1, 1)
+        let e = ease_table(t)
+        context.fillStyle = col(0, 0, 0.4)
+        context.strokeStyle = col(0, 0, 1-(0.2+(e*0.7)))
+        context.lineWidth = 32+(e*64)
+        context.lineCap = 'round'
+        context.lineJoin = 'round'
+        curves.forEach((v) => {
+            curve_points(32, ...v)
+                .forEach(curve_draw.bind(this, context))
+        })
         context.restore()
 
 
