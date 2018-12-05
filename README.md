@@ -8,6 +8,7 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Parametric equations](https://en.wikipedia.org/wiki/Parametric_equation#Kinematics)
 - [Bertstein polynomials](https://en.wikipedia.org/wiki/Bernstein_polynomial)
 - [Homogeneous coordinates](https://en.wikipedia.org/wiki/Homogeneous_coordinates)
+- [Neat type making tool](http://kielm.land/)
 
 ## Inspiration & tutorials
 - [Signed distance functions by Jamie Wong](http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/)
