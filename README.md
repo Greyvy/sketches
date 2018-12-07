@@ -23,3 +23,5 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [A programmers guide to polynomials and splines by Words and Buttons](https://wordsandbuttons.online/programmers_guide_to_polynomials_and_splines.html)
 - [Patterns in Islamic Art](https://patterninislamicart.com/)
 - [Motion blur in canvas-sketch](https://gist.github.com/mattdesl/447feabf4c819889a5e73de0da37abc0)
+- [RGB to HSV fragment shader](http://www.chilliant.com/rgb2hsv.html)
+- [2D GPU displacement mapping](http://io7m.com/documents/displacement2d/)
