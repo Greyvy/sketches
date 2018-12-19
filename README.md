@@ -25,3 +25,5 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Motion blur in canvas-sketch](https://gist.github.com/mattdesl/447feabf4c819889a5e73de0da37abc0)
 - [RGB to HSV fragment shader](http://www.chilliant.com/rgb2hsv.html)
 - [2D GPU displacement mapping](http://io7m.com/documents/displacement2d/)
+- [Rendering SVG paths in WebGL by Matt DesLauriers](https://css-tricks.com/rendering-svg-paths-in-webgl/)
+- [Building a music visualizer with the web audio api](https://noisehack.com/build-music-visualizer-web-audio-api/)
