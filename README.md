@@ -27,3 +27,6 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [2D GPU displacement mapping](http://io7m.com/documents/displacement2d/)
 - [Rendering SVG paths in WebGL by Matt DesLauriers](https://css-tricks.com/rendering-svg-paths-in-webgl/)
 - [Building a music visualizer with the web audio api](https://noisehack.com/build-music-visualizer-web-audio-api/)
+- [Toon shading](https://mnmxmx.github.io/toon-shading/dst/index.html)
+- [Halftone shader](https://mnmxmx.github.io/halftone-effect/dst/)
+- [Follow up to the Fourier Series](http://bilimneguzellan.net/follow-up-to-fourier-series/)
