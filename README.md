@@ -30,3 +30,4 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Toon shading](https://mnmxmx.github.io/toon-shading/dst/index.html)
 - [Halftone shader](https://mnmxmx.github.io/halftone-effect/dst/)
 - [Follow up to the Fourier Series](http://bilimneguzellan.net/follow-up-to-fourier-series/)
+- [Daily minimal](http://www.dailyminimal.com/)
