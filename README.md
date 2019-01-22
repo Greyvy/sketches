@@ -31,3 +31,8 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Halftone shader](https://mnmxmx.github.io/halftone-effect/dst/)
 - [Follow up to the Fourier Series](http://bilimneguzellan.net/follow-up-to-fourier-series/)
 - [Daily minimal](http://www.dailyminimal.com/)
+- [WebGL wireframes](https://github.com/mattdesl/webgl-wireframes)
+- [Parametric curves](https://github.com/mattdesl/parametric-curves)
+- [WebGL directional lighting](https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html)
+- [Tyler Hobbs blog](http://www.tylerlhobbs.com/writings)
+- [An interactive tutorial on Fourier transforms](http://www.jezzamon.com/fourier/index.html)
