@@ -37,3 +37,4 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [WebGL directional lighting](https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html)
 - [Tyler Hobbs blog](http://www.tylerlhobbs.com/writings)
 - [An interactive tutorial on Fourier transforms](http://www.jezzamon.com/fourier/index.html)
+- [Procedural textures](https://wwwtyro.net/2016/10/22/2D-space-scene-procgen.html)
