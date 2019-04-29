@@ -41,6 +41,8 @@ let sketch = ({ gl, width, height }) => {
 
     let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
 
+    // @NOTE(Grey): reference
+    // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
     let viewport_draw = regl({
         frag: `
         precision mediump float;

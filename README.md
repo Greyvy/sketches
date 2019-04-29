@@ -10,6 +10,9 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Homogeneous coordinates](https://en.wikipedia.org/wiki/Homogeneous_coordinates)
 - [Neat type making tool](http://kielm.land/)
 - [UV coordinates for textures](http://paulyg.f2s.com/uv.htm)
+- [GLSL noise](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83)
+- [Voronoise by inigo quilez](http://iquilezles.org/www/articles/voronoise/voronoise.htm)
+- [Fluid simulation for dummies](https://mikeash.com/pyblog/fluid-simulation-for-dummies.html)
 
 ## Inspiration & tutorials
 - [Signed distance functions by Jamie Wong](http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/)
@@ -38,3 +41,7 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [Tyler Hobbs blog](http://www.tylerlhobbs.com/writings)
 - [An interactive tutorial on Fourier transforms](http://www.jezzamon.com/fourier/index.html)
 - [Procedural textures](https://wwwtyro.net/2016/10/22/2D-space-scene-procgen.html)
+- [dynamic de Jong attracter in WebGL](https://observablehq.com/@mbostock/making-webgl-dance)
+- [Clifford attractor with additive blending in WebGL](https://observablehq.com/@mbostock/clifford-attractor-iii)
+- [de Jong attractor II](https://observablehq.com/@mbostock/de-jong-attractor-ii)
+
