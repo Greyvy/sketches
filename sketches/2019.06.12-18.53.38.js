@@ -80,8 +80,9 @@ let sketch = async ({ gl, width, height }) => {
         ]
     })
 
+    let N = 8192
     let plane_fft = regl.texture({
-        shape: [1, 128/4, 4],
+        shape: [1, N/4, 4],
         min: 'linear',
         mag: 'linear',
         wrapS: 'repeat',
@@ -361,7 +362,8 @@ let sketch = async ({ gl, width, height }) => {
     }
 
     let player =  await load_sound(`/assets/2019_06_13.mp3`)
-    let fft = new Tone.FFT(plane.cells.length)
+    let fft = new Tone.FFT(N)
+    let fft_r = new Uint8Array(N)
     player.connect(fft)
     player.toMaster()
     player.autostart = true
@@ -376,17 +378,8 @@ let sketch = async ({ gl, width, height }) => {
             regl.clear({color: [...bgc, 1], depth: 1})
 
             let fft_v = fft.getValue()
-            let fft_r = []
             for (let i = 0; i < fft_v.length; i += 1) {
-                fft_r.push(Math.floor(map(fft_v[i], -110, 0, 0, 255)))
-                /*
-                fft_r.push([
-                    Math.floor(map(fft_v[i+0], -200, 0, 0, 255)),
-                    Math.floor(map(fft_v[i+1], -200, 0, 0, 255)),
-                    Math.floor(map(fft_v[i+2], -200, 0, 0, 255)),
-                    Math.floor(map(fft_v[i+3], -200, 0, 0, 255))
-                ])
-                */
+                fft_r[i] = Math.floor(map(fft_v[i], -40, 0, 0, 255))
             }
 
             plane_fft.subimage(fft_r)
