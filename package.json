@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "canvas-sketch": "0.0.15",
+    "canvas-sketch": "^0.5.0",
     "canvas-sketch-util": "^1.8.0",
     "geo-3d-box": "^2.0.2",
     "gl-mat4": "^1.2.0",
