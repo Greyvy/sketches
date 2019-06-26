@@ -161,10 +161,7 @@ let sketch = ({ gl, width, height }) => {
 
             float depth = map_range(v_depth, 0.0, 0.30, 0.0, 1.0);
 
-            // gl_FragColor = vec4(color);
-            // gl_FragColor = vec4(vec3(n+(1.0-abs(v_depth+0.75))), 1.0);
-            // gl_FragColor = vec4(vec3((1.0-abs(v_depth+0.75))), 1.0);
-            gl_FragColor = vec4(color.rgb+depth, 1.0);
+            gl_FragColor = vec4(color.rgb+u_random.x, 1.0);
         }`,
 
         vert: `
@@ -262,9 +259,12 @@ let sketch = ({ gl, width, height }) => {
             v_color = a_color;
             vec3 position = a_position;
 
-            // float t = sin(u_time*PI);
-            // position.xyz *= voronoi3d(vec3(st+u_random.xy, t)*2.0);
+            float t = sin(u_time*PI);
             v_depth = position.z;
+
+            vec3 n = voronoi3d(vec3(st+u_random.xy, t)*2.0);
+
+            position.xyz += pow(sin(u_time*PI), 2.0)*n*0.0015;
 
             gl_Position = u_projection*u_view*u_matrix*vec4(position, 1.0);
         }`,
@@ -290,7 +290,7 @@ let sketch = ({ gl, width, height }) => {
                 let { u_time, u_random, u_position } = props
 
                 let rot = mat4.rotate([], mat4.identity([]), Math.sin(0.125*PI*2.0)*(PI/8),
-                    [1, 0, 0]
+                    [-1, 0, 0]
                 )
 
                 let x = u_position[0]
