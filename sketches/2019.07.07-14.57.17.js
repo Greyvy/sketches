@@ -47,16 +47,12 @@ let sketch = ({ gl, width, height }) => {
     let text_make = function(colour) {
         let canvas = document.createElement('canvas')
         let ctx = canvas.getContext('2d')
-        let fs = 140
+        let fs = 200
 
         canvas.width = width
         canvas.height = height
-        /*
-        ctx.fillStyle = 'hsla(0, 0%, 100%, 1)'
-        ctx.fillRect(0, 0, width, height)
-        */
         ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
-        ctx.font = `${fs}px FranklinGothicMedium,sans-serif`
+        ctx.font = `${fs}px KeplerStd-LightDisp,sans-serif`
         ctx.textAlign = 'center'
         ctx.fillText('SPINE SPIKE', canvas.width/2, (height/2)+(fs/3))
 
@@ -65,7 +61,7 @@ let sketch = ({ gl, width, height }) => {
 
 
 
-    let icosphere = icosphere_make(1, { subdivisions: 3 })
+    let icosphere = icosphere_make(1, { subdivisions: 5 })
     let text = text_make()
 
     let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
@@ -151,6 +147,10 @@ let sketch = ({ gl, width, height }) => {
             return vec3(sqrt(res), abs(id));
         }
 
+        mat2 rotate2d(float angle) {
+            return mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+        }
+
         float map_range(float v, float ds, float de, float rs, float re) {
             return rs+(re-rs)*((v-ds)/(de-ds));
         }
@@ -159,10 +159,11 @@ let sketch = ({ gl, width, height }) => {
             vec2 st = gl_FragCoord.xy/u_resolution.xy;
             vec2 uv = v_uv;
 
-            vec4 text = texture2D(u_text, uv);
+            vec4 text = texture2D(u_text, vec2(uv.x+1.0-pow(abs(u_time), 1.0), uv.y));
             vec4 color = vec4(v_color, 1.0);
 
-            color.rgba = mix(color.rgba, text.rgba, 0.5);
+            float theta = 1.0-(pow(abs(1.0-(u_time*2.0)), 1.0));
+            color.rgba = mix(color.rgba, text.rgba, theta);
 
             vec3 U = dFdx(v_vertex);
             vec3 V = dFdy(v_vertex);
@@ -307,8 +308,8 @@ let sketch = ({ gl, width, height }) => {
             },
             u_matrix: (stats, props) => {
                 let { u_time, u_index, u_random, u_resolution } = props
-                let tra = mat4.translate([], mat4.identity([]), [0, Math.sin(ease(u_time, 0.8)*PI*2.0)*0.5, 0])
-                let rot = mat4.rotate([], tra, Math.sin(u_time*PI*2.0)*(PI/2), [1, 1, 0])
+                let tra = mat4.translate([], mat4.identity([]), [0, 0, 0])
+                let rot = mat4.rotate([], tra, Math.sin(u_time*PI*2.0)*(PI/2), u_random)
                 return mat4.scale([], rot, [0.5, 0.5, 0.5])
             },
             u_projection: ({viewportWidth, viewportHeight}) => {
