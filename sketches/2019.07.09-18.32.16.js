@@ -51,7 +51,9 @@ let sketch = ({ gl, width, height }) => {
 
         canvas.width = width
         canvas.height = height
-        ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
+        ctx.fillStyle = 'hsla(0, 0%, 100%, 1)'
+        ctx.fillRect(0, 0, width, height)
+        ctx.fillStyle = 'hsla(0, 0%, 50%, 1)'
         ctx.font = `${fs}px KeplerStd-LightDisp,sans-serif`
         ctx.textAlign = 'center'
         ctx.fillText('SPINE SPIKE', canvas.width/2, (height/2)+(fs/3))
@@ -61,7 +63,7 @@ let sketch = ({ gl, width, height }) => {
 
 
 
-    let icosphere = icosphere_make(1, { subdivisions: 5 })
+    let icosphere = icosphere_make(1, { subdivisions: 2 })
     let text = text_make()
 
     let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
@@ -164,6 +166,9 @@ let sketch = ({ gl, width, height }) => {
 
             vec4 text = texture2D(u_text, uv_t);
             vec4 color = vec4(v_color, 1.0);
+
+
+            // color.rgb = mix(color.rgb, text.rgb, 0.5);
 
             color = text*color;
 
