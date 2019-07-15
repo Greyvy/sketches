@@ -167,7 +167,6 @@ let sketch = ({ gl, width, height }) => {
             vec2 uv_t = uv;
 
             // uv_t.y += pow(sin(u_time*PI)*uv_t.y, st.y);
-
             // uv_t.x = uv_t.x+1.0-pow(abs(u_time), 1.0);
             // uv_t.y = mod(uv_t.y, 0.5);
 
@@ -331,6 +330,8 @@ let sketch = ({ gl, width, height }) => {
                 let { u_time, u_index, u_random, u_resolution } = props
                 let tra = mat4.translate([], mat4.identity([]), [
                     (-3.0*u_index)+(Math.sin(ease(u_time, 1.5)*(PI*0.5))*6.0), 0, 0
+                    // 0, (3.0*u_index)+(Math.sin(ease(u_time, 1.5)*(PI*0.5))*-6.0), 0
+                    // (3.0*u_index)+(Math.sin(ease(u_time, 1.5)*(PI*0.5))*-6.0), 0, 0
                 ])
                 let rot = mat4.rotate([], tra, -PI, [1, 0, 0])
                 return mat4.scale([], rot, [1.5, 1.5, 1.5])
