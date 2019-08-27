@@ -127,13 +127,13 @@ let sketch = ({ gl, width, height }) => {
             vec4 base = texture2D(u_texture0, uv);
             vec4 lowr = texture2D(u_texture1, uv);
             vec4 blur = vec4(0.0);
-            blur += texture2D(u_texture1, uv)*0.1964825501511404;
-            blur += texture2D(u_texture1, uv+(off1/u_resolution))*0.2969069646728344;
-            blur += texture2D(u_texture1, uv-(off1/u_resolution))*0.2969069646728344;
-            blur += texture2D(u_texture1, uv+(off2/u_resolution))*0.09447039785044732;
-            blur += texture2D(u_texture1, uv-(off2/u_resolution))*0.09447039785044732;
-            blur += texture2D(u_texture1, uv+(off3/u_resolution))*0.010381362401148057;
-            blur += texture2D(u_texture1, uv-(off3/u_resolution))*0.010381362401148057;
+            blur += texture2D(u_texture0, uv)*0.1964825501511404;
+            blur += texture2D(u_texture0, uv+(off1/u_resolution))*0.2969069646728344;
+            blur += texture2D(u_texture0, uv-(off1/u_resolution))*0.2969069646728344;
+            blur += texture2D(u_texture0, uv+(off2/u_resolution))*0.09447039785044732;
+            blur += texture2D(u_texture0, uv-(off2/u_resolution))*0.09447039785044732;
+            blur += texture2D(u_texture0, uv+(off3/u_resolution))*0.010381362401148057;
+            blur += texture2D(u_texture0, uv-(off3/u_resolution))*0.010381362401148057;
 
             vec4 color = mix(base, blur, pow(step(st.y, 0.5), 2.5));
             // color = mix(color, lowr, pow(st.y, 2.5));
