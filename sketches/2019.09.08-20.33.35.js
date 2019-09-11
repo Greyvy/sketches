@@ -15,7 +15,7 @@ let vec3 = require('gl-vec3')
 let settings = {
     context: 'webgl',
     animate: true,
-    duration: 6.84,
+    duration: 8,
     dimensions: [ 1024, 1024 ],
     attributes: {
         antialiase: true
@@ -26,7 +26,6 @@ let sketch = async ({ gl, width, height }) => {
 
     const PI = Math.PI
     const TAU = PI * 2
-    const N = 128
 
     let glsl_utils = `
         mat2 rotate2d(float angle) {
@@ -188,51 +187,26 @@ let sketch = async ({ gl, width, height }) => {
 
 
 
-    let torus = torus_make({ majorSegments: 32, minorSegments: 16, arc: Math.PI*2.0 })
+    let icosphere = icosphere_make()
     let text = text_make()
 
-    let base_hue = rand()*360
-    let bg_colour = hsluv.hsluvToRgb([base_hue, 40, 50])
-    let torus_colour = hsluv.hsluvToRgb([base_hue, 40, 50])
-    let torus_colours = torus.cells.map((v, i, a) => {
-        return [torus_colour, torus_colour, torus_colour]
+    let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
+
+    let icosphere_colour = hsluv.hsluvToRgb([0, 0, rand()*100])
+    let icosphere_colours = icosphere.cells.map((v, i, a) => {
+        return [icosphere_colour, icosphere_colour, icosphere_colour]
     })
 
-    let torus_target1024 = regl.framebuffer({
-        color: [
-            regl.texture({
-                type: 'float',
-                width: 1024,
-                height: 1024,
-                wrapS: 'repeat',
-                wrapT: 'repeat'
-            })
-        ]
+    let icosphere_target1024 = regl.framebuffer({
+        color: [ regl.texture({ type: 'float', width: 1024, height: 1024 }) ]
+    })
+    let icosphere_target64 = regl.framebuffer({
+        color: [ regl.texture({ type: 'float', width: 64, height: 64 }) ]
     })
 
-    let torus_target64 = regl.framebuffer({
-        color: [
-            regl.texture({
-                type: 'float',
-                width: 64,
-                height: 64,
-                wrapS: 'repeat',
-                wrapT: 'repeat'
-            })
-        ]
-    })
+    let icosphere_render_panel = plane_make()
 
-    let torus_render_panel = plane_make()
-
-    let torus_fft = regl.texture({
-        shape: [N/4, N/4, 4],
-        min: 'linear',
-        mag: 'linear',
-        wrapS: 'repeat',
-        wrapT: 'repeat'
-    })
-
-    let torus_render = regl({
+    let icosphere_render = regl({
         frag: `
         #ifdef GL_OES_standard_derivatives
         #extension GL_OES_standard_derivatives : enable
@@ -246,7 +220,6 @@ let sketch = async ({ gl, width, height }) => {
         uniform vec2 u_resolution;
         uniform sampler2D u_texture0;
         uniform sampler2D u_texture1;
-        uniform sampler2D u_fft;
 
         float aastep(float threshold, float dist) {
             float afwidth = fwidth(dist)*0.5;
@@ -259,14 +232,11 @@ let sketch = async ({ gl, width, height }) => {
             float t = u_time*PI;
             float s = 1.0;
 
-            vec4 fft = texture2D(u_fft, uv);
-            float radius = 8.0;
+            float radius = 4.0;
             vec2 direction = vec2(sin(t)*radius, cos(t)*radius);
             vec2 off1 = vec2(1.411764705882353)*direction;
             vec2 off2 = vec2(3.294117647058823)*direction;
             vec2 off3 = vec2(5.176470588235294)*direction;
-
-            uv.x += mod(u_time, length(fft)*0.25)/length(fft)*0.25;
 
             vec4 base = texture2D(u_texture0, uv);
             vec4 lowr = texture2D(u_texture1, uv);
@@ -281,10 +251,10 @@ let sketch = async ({ gl, width, height }) => {
 
             // vec3 color = smoothstep(tex1.rgb, tex0.rgb, vec3(st.y*t, st.y*t, st.y*t));
             // vec4 color = (tex0+tex1+tex2)/vec4(3.0);
+            // vec4 glitch = mix(lowr, blur, step(u_snap, 0.95));
 
-            vec4 glitch = mix(lowr, blur, step(length(fft), 0.5));
-            // vec4 color = mix(base, glitch, step(st.x, 0.5));
-            vec4 color = mix(base, glitch, step(st.x+(length(fft)*0.25), 0.5));
+            // vec4 color = mix(base, blur, step(st.x, 0.5));
+            vec4 color = base;
 
             gl_FragColor = vec4(color);
         }
@@ -303,10 +273,10 @@ let sketch = async ({ gl, width, height }) => {
         }
         `,
         attributes: {
-            a_position: torus_render_panel.positions,
-            a_uv: torus_render_panel.uvs,
+            a_position: icosphere_render_panel.positions,
+            a_uv: icosphere_render_panel.uvs,
         },
-        elements: torus_render_panel.cells,
+        elements: icosphere_render_panel.cells,
         uniforms: {
             u_view: ({time}, props) => {
                 return mat4.lookAt([],
@@ -326,8 +296,7 @@ let sketch = async ({ gl, width, height }) => {
             u_texture0: regl.prop('u_texture0'),
             u_texture1: regl.prop('u_texture1'),
             u_time: regl.prop('u_time'),
-            u_snap: regl.prop('u_snap'),
-            u_fft: regl.prop('u_fft')
+            u_snap: regl.prop('u_snap')
         },
         blend: {
             enable: true,
@@ -341,7 +310,7 @@ let sketch = async ({ gl, width, height }) => {
         primitive: 'triangles'
     })
 
-    let torus_draw = regl({
+    let icosphere_draw = regl({
         frag: `
         #extension GL_OES_standard_derivatives : enable
         precision mediump float;
@@ -370,11 +339,7 @@ let sketch = async ({ gl, width, height }) => {
             vec2 uv = v_uv;
             vec2 uv_t = uv;
 
-            float noise = iqnoise((uv_t+u_random.xy)*80.0, 1.0, 0.0);
-
-            uv_t.x += pow(st.x+u_time, 1.5);
-            uv_t.y -= u_time+noise;
-
+            float noise = voronoi2d((uv_t+u_random.xy)*1.25);
             vec4 text = texture2D(u_text, uv_t);
             vec4 color = vec4(v_color, 1.0);
 
@@ -385,11 +350,8 @@ let sketch = async ({ gl, width, height }) => {
             vec3 light_direction = normalize(vec3(0.2, 0.3, 0.7)*u_random);
             float light_intensity = dot(normal, light_direction);
 
-            // float t = sin(u_time*PI);
-
-            color.rgb += noise;
             color.rgb *= light_intensity;
-            color.rgb = mix(color.rgb, vec3(1.0)-color.rgb, text.r);
+            // color.rgb = mix(color.rgb, vec3(1.0)-color.rgb, text.r);
 
             gl_FragColor = vec4(color);
         }`,
@@ -405,7 +367,7 @@ let sketch = async ({ gl, width, height }) => {
         uniform vec3 u_random;
         uniform vec2 u_resolution;
         uniform float u_time, u_index, u_length;
-        uniform sampler2D u_text, u_fft;
+        uniform sampler2D u_text;
 
         varying float v_depth;
         varying vec2 v_uv;
@@ -428,21 +390,19 @@ let sketch = async ({ gl, width, height }) => {
             vec2 uv = a_uv;
 
             vec4 text = texture2D(u_text, uv);
-            vec4 fft = texture2D(u_fft, uv);
             vec4 norm = u_matrix*vec4(a_normal.xyz, 1.0);
             vec3 position = a_position;
 
             float t = u_time*PI;
-            float noise1 = iqnoise(uv, 1.0, 0.0);
-            float noise2 = iqnoise(uv*32.0, 1.0, 0.0);
-            float noise3 = iqnoise(uv*64.0, 1.0, 0.0);
+            float noise1 = iqnoise(uv*2.0, 1.0, 0.0);
+            float noise2 = iqnoise(uv*6.0, 1.0, 0.0);
+            float noise3 = iqnoise(uv*8.0, 1.0, 0.0);
             float noise = (noise1+noise2+noise3)/3.0;
 
-            position.z += noise*(ease(sin(t), 1.5))*0.85;
+            position.z += noise*(ease(sin(t), 1.5))*0.5;
 
             mat2 rotation = rotate2d(u_index+ease(u_time, 1.5)*PI*2.0);
-            // float offset = iqnoise(vec2(u_index/u_length, ease(sin(t), 1.5))*2.0, 1.0, 0.0);
-            float offset = length(fft)*0.5;
+            float offset = iqnoise(vec2(u_index/u_length, ease(sin(t), 1.5))*2.0, 1.0, 0.0);
 
             position.xy += ((offset*2.0)-1.0)*0.25;
             position.xy *= rotation;
@@ -457,13 +417,13 @@ let sketch = async ({ gl, width, height }) => {
         }`,
 
         attributes: {
-            a_position: torus.positions,
-            a_uv: torus.uvs,
-            a_normal: torus.normals,
-            a_color: torus_colours,
+            a_position: icosphere.positions,
+            a_uv: icosphere.uvs,
+            a_normal: icosphere.normals,
+            a_color: icosphere_colours,
         },
 
-        elements: torus.cells,
+        elements: icosphere.cells,
 
         uniforms: {
             u_view: ({time}, props) => {
@@ -475,12 +435,22 @@ let sketch = async ({ gl, width, height }) => {
                 )
             },
             u_matrix: (stats, props) => {
-                let { u_time, u_index, u_length, u_random, u_resolution } = props
-                let scale = 0.5
+                let { u_time, u_index, u_length, u_random, u_resolution, u_scale } = props
+                let identity = mat4.identity([])
+                let scale = u_scale
+                let start = (u_random[0]*PI*2.0)
 
-                let tra = mat4.translate([], mat4.identity([]), [ 0, 0, 0 ])
-                let rot = mat4.rotate([], tra, u_time*PI*2.0, u_random)
-                return mat4.scale([], rot, [scale, -scale, scale])
+                let res = [
+                    map(u_random[0], 0, 1, -1, 1),
+                    map(u_random[1], 0, 1, -1, 1),
+                    map(u_random[2], 0, 1, -1, 1)
+                ]
+
+                let st = vec3.mul([], vec3.normalize([], res), [0.85, 0.85, 0.85])
+
+                let rot = mat4.rotate([], identity, u_time*PI*2.0, u_random)
+                let tra = mat4.translate([], rot, st)
+                return mat4.scale([], tra, [scale, -scale, scale])
             },
             u_projection: ({viewportWidth, viewportHeight}) => {
                 return mat4.perspective([],
@@ -494,7 +464,7 @@ let sketch = async ({ gl, width, height }) => {
             u_index: regl.prop('u_index'),
             u_length: regl.prop('u_length'),
             u_view: regl.prop('u_view'),
-            u_fft: regl.prop('u_fft')
+            u_scale: regl.prop('u_scale')
         },
         blend: {
             enable: true,
@@ -508,15 +478,8 @@ let sketch = async ({ gl, width, height }) => {
         primitive: 'triangles'
     })
 
-    let player = await load_sound(`/assets/2019_09_06.mp3`)
-    let fft = new Tone.FFT(N*N)
-    let fft_r = new Uint8Array(N*N)
-    player.connect(fft)
-    player.toMaster()
-    player.autostart = true
-    player.loop = true
 
-    let torus_elements = new Array(24)
+    let icosphere_elements = new Array(256)
         .fill({})
         .map(function(value, i, a) {
             return {
@@ -529,49 +492,39 @@ let sketch = async ({ gl, width, height }) => {
                 u_random: [rand(), rand(), rand()],
                 u_text: text,
                 u_index: i,
-                u_length: a.length
+                u_length: a.length,
+                u_scale: 0.0125
             }
         })
 
-    return {
-        begin() {
-            player.restart()
-        },
-        render({ playhead }) {
-            regl.poll()
-            regl.clear({color: [...bg_colour, 1], depth: 1})
+    return ({ playhead }) => {
+        regl.poll()
+        regl.clear({color: [...bgc, 1], depth: 1})
 
-            regl.clear({ color: bg_colour, depth: 1, framebuffer: torus_target1024 })
-            regl.clear({ color: bg_colour, depth: 1, framebuffer: torus_target64 })
+        regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target1024 })
+        regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target64 })
 
-            let fft_v = fft.getValue()
-            for (let i = 0; i < fft_v.length; ++i) {
-                fft_r[i] = Math.floor(map(fft_v[i], -100, 0, 0, 255))
-            }
-            torus_fft.subimage(fft_r)
+        icosphere_target1024.use(() => {
+            icosphere_draw(icosphere_elements.map(function(value) {
+                return Object.assign(value, { u_time: playhead })
+            }))
+        })
 
-            torus_target1024.use(() => {
-                torus_draw(torus_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: torus_fft })
-                }))
-            })
+        icosphere_target64.use(() => {
+            icosphere_draw(icosphere_elements.map(function(value) {
+                return Object.assign(value, { u_time: playhead })
+            }))
+        })
 
-            torus_target64.use(() => {
-                torus_draw(torus_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: torus_fft })
-                }))
-            })
+        icosphere_render({
+            u_resolution: [width, height],
+            u_texture0: icosphere_target1024.color[0],
+            u_texture1: icosphere_target64.color[0],
+            u_scale: [2, 2, 2],
+            u_time: playhead,
+            u_snap: rand()
+        })
 
-            torus_render({
-                u_resolution: [width, height],
-                u_texture0: torus_target1024.color[0],
-                u_texture1: torus_target64.color[0],
-                u_scale: [2, 2, 2],
-                u_time: playhead,
-                u_snap: rand(),
-                u_fft: torus_fft
-            })
-        }
     }
 }
 
