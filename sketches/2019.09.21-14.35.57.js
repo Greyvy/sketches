@@ -15,7 +15,7 @@ let vec3 = require('gl-vec3')
 let settings = {
     context: 'webgl',
     animate: true,
-    duration: 7.42,
+    duration: 8,
     dimensions: [ 1024, 1024 ],
     attributes: {
         antialiase: true
@@ -26,7 +26,6 @@ let sketch = async ({ gl, width, height }) => {
 
     const PI = Math.PI
     const TAU = PI * 2
-    const N = 128
 
     let glsl_utils = `
         mat2 rotate2d(float angle) {
@@ -180,20 +179,20 @@ let sketch = async ({ gl, width, height }) => {
         ctx.fillRect(0, 0, width, height)
         ctx.fillStyle = 'hsla(0, 0%, 0%, 1)'
         ctx.font = `${fs}px TradeGothicLTStd-Bold,sans-serif`
-        ctx.textAlign = 'left'
-        ctx.fillText('beeeeemo', 8*scale, fs*2.0)
+        ctx.textAlign = 'center'
+        ctx.fillText('MI{ERROR}', canvas.width/2, canvas.height/2)
 
         return regl.texture({ data: canvas, wrapS: 'repeat', wrapT: 'repeat' })
     }
 
 
 
-    let icosphere = icosphere_make()
+    let icosphere = icosphere_make(1.0, {subdivisions: 4})
     let text = text_make()
 
-    let bgc = hsluv.hsluvToRgb([rand()*360, 50+rand()*50, 80+rand()*20])
+    let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
 
-    let icosphere_colour = hsluv.hsluvToRgb([rand()*360, rand()*80, rand()*80])
+    let icosphere_colour = hsluv.hsluvToRgb([0, 0, rand()*100])
     let icosphere_colours = icosphere.cells.map((v, i, a) => {
         return [icosphere_colour, icosphere_colour, icosphere_colour]
     })
@@ -205,22 +204,7 @@ let sketch = async ({ gl, width, height }) => {
         color: [ regl.texture({ type: 'float', width: 64, height: 64 }) ]
     })
 
-    let icosphere_trail0 = regl.framebuffer({
-        color: [ regl.texture({ type: 'float', width: 1024, height: 1024 }) ]
-    })
-    let icosphere_trail1 = regl.framebuffer({
-        color: [ regl.texture({ type: 'float', width: 1024, height: 1024 }) ]
-    })
-
     let icosphere_render_panel = plane_make()
-
-    let icosphere_fft = regl.texture({
-        shape: [N/4, N/4, 4],
-        min: 'linear',
-        mag: 'linear',
-        wrapS: 'repeat',
-        wrapT: 'repeat'
-    })
 
     let icosphere_render = regl({
         frag: `
@@ -234,14 +218,9 @@ let sketch = async ({ gl, width, height }) => {
 
         uniform float u_time, u_snap;
         uniform vec2 u_resolution;
-        uniform vec3 u_random;
         uniform sampler2D u_texture0;
         uniform sampler2D u_texture1;
-        uniform sampler2D u_fft;
-
-        ${glsl_utils}
-        ${glsl_voronoi}
-        ${glsl_voronoise}
+        uniform sampler2D u_text;
 
         float aastep(float threshold, float dist) {
             float afwidth = fwidth(dist)*0.5;
@@ -260,9 +239,9 @@ let sketch = async ({ gl, width, height }) => {
             vec2 off2 = vec2(3.294117647058823)*direction;
             vec2 off3 = vec2(5.176470588235294)*direction;
 
-            vec4 fft = texture2D(u_fft, uv);
             vec4 base = texture2D(u_texture0, uv);
             vec4 lowr = texture2D(u_texture1, uv);
+            vec4 text = texture2D(u_text, uv);
             vec4 blur = vec4(0.0);
             blur += texture2D(u_texture0, uv)*0.1964825501511404;
             blur += texture2D(u_texture0, uv+(off1/u_resolution))*0.2969069646728344;
@@ -272,11 +251,13 @@ let sketch = async ({ gl, width, height }) => {
             blur += texture2D(u_texture0, uv+(off3/u_resolution))*0.010381362401148057;
             blur += texture2D(u_texture0, uv-(off3/u_resolution))*0.010381362401148057;
 
-            float noise = iqnoise((u_random.xy+st)*32.0, 1.0, 0.0);
-            vec4 glitch = mix(lowr, blur, step(1.0-st.y, 0.5));
-            vec4 color = mix(base, blur, step(st.x*(noise*length(fft)), 0.5));
-            color.a = 1.0;
+            // vec3 color = smoothstep(tex1.rgb, tex0.rgb, vec3(st.y*t, st.y*t, st.y*t));
+            // vec4 color = (tex0+tex1+tex2)/vec4(3.0);
+            // vec4 glitch = mix(lowr, blur, step(u_snap, 0.95));
 
+            // vec4 color = mix(base, blur, step(st.x, 0.5));
+            // vec4 color = mix(text, base, text.a);
+            vec4 color = base;
 
             gl_FragColor = vec4(color);
         }
@@ -308,19 +289,18 @@ let sketch = async ({ gl, width, height }) => {
                 )
             },
             u_matrix: (stats, props) => {
-                return mat4.scale([], mat4.identity([]), props.u_scale || [1, 1, 1])
+                return mat4.scale([], mat4.identity([]), [2, -2, 2])
             },
             u_projection: ({viewportWidth, viewportHeight}) => {
                 return mat4.perspective([],
                     PI/2, viewportWidth/viewportHeight, 0.01, 50)
             },
-            u_random: regl.prop('u_random'),
             u_resolution: regl.prop('u_resolution'),
             u_texture0: regl.prop('u_texture0'),
             u_texture1: regl.prop('u_texture1'),
             u_time: regl.prop('u_time'),
             u_snap: regl.prop('u_snap'),
-            u_fft: regl.prop('u_fft')
+            u_text: regl.prop('u_text')
         },
         blend: {
             enable: true,
@@ -342,8 +322,8 @@ let sketch = async ({ gl, width, height }) => {
 
         uniform float u_time;
         uniform vec3 u_random;
-        uniform vec2 u_resolution, u_lookup;
-        uniform sampler2D u_text, u_fft;
+        uniform vec2 u_resolution;
+        uniform sampler2D u_text;
 
         varying float v_depth;
         varying vec2 v_uv;
@@ -358,26 +338,44 @@ let sketch = async ({ gl, width, height }) => {
             return smoothstep(threshold-afwidth, threshold+afwidth, dist);
         }
 
+        float lines(in vec2 pos, float b) {
+            float scale = 30.0;
+            pos *= scale;
+            return smoothstep(0.0, 0.5+b*0.5, abs((sin(pos.x*3.1415)+b*2.0))*0.5);
+        }
+
         void main() {
             vec2 st = gl_FragCoord.xy/u_resolution.xy;
             vec2 uv = v_uv;
             vec2 uv_t = uv;
+            vec2 uv_s = uv;
 
-            float noise = voronoi2d((uv_t+u_random.xy)*1.25);
-            vec4 fft = texture2D(u_fft, u_lookup);
-            vec4 text = texture2D(u_text, uv_t);
+
+            uv_t.y += ease(u_time, 1.5);
+            uv_t.y = mod(uv_t.y, 1.0);
+
+            vec2 lookup = vec2(1.0)-pow(abs(uv_t+u_random.xy)*20.0, vec2(1.0));
+            float noise = iqnoise(lookup, 1.0, 0.0);
+
+            uv_s.y -= 0.06;
+            uv_s.x += ease(u_time, 1.5)*noise;
+            uv_s.x = mod(uv_s.x, 1.0);
+
+            vec4 text = texture2D(u_text, uv_s);
             vec4 color = vec4(v_color, 1.0);
 
+            vec3 stripes = vec3(lines(uv*noise, 0.0125));
 
-            vec3 U = dFdx(v_vertex);
-            vec3 V = dFdy(v_vertex);
-            vec3 normal = normalize(cross(U,V));
+            // vec3 U = dFdx(v_vertex);
+            // vec3 V = dFdy(v_vertex);
+            // vec3 normal = normalize(cross(U,V));
+            vec3 normal = v_normal;
             vec3 light_direction = normalize(vec3(0.2, 0.3, 0.7)*u_random);
             float light_intensity = dot(normal, light_direction);
 
-            color.rgb += fft.rgb*1.0;
+            color.rgb *= stripes;
             color.rgb *= light_intensity;
-            // color.rgb = mix(color.rgb, vec3(1.0)-color.rgb, text.r);
+            color.rgb = mix(color.rgb, vec3(1.0)-color.rgb, text.r);
 
             gl_FragColor = vec4(color);
         }`,
@@ -391,9 +389,9 @@ let sketch = async ({ gl, width, height }) => {
 
         uniform mat4 u_projection, u_view, u_matrix;
         uniform vec3 u_random;
-        uniform vec2 u_resolution, u_lookup;
+        uniform vec2 u_resolution;
         uniform float u_time, u_index, u_length;
-        uniform sampler2D u_text, u_fft;
+        uniform sampler2D u_text;
 
         varying float v_depth;
         varying vec2 v_uv;
@@ -415,7 +413,6 @@ let sketch = async ({ gl, width, height }) => {
             vec2 st = fake_frag_coord.xy/u_resolution.xy;
             vec2 uv = a_uv;
 
-            vec4 fft = texture2D(u_fft, u_lookup);
             vec4 text = texture2D(u_text, uv);
             vec4 norm = u_matrix*vec4(a_normal.xyz, 1.0);
             vec3 position = a_position;
@@ -426,7 +423,11 @@ let sketch = async ({ gl, width, height }) => {
             float noise3 = iqnoise(uv*8.0, 1.0, 0.0);
             float noise = (noise1+noise2+noise3)/3.0;
 
-            position.y += 1.0-(length(fft)*2.0)*2.0;
+
+            float offset = iqnoise(vec2(u_index/u_length, ease(sin(t), 1.5))*2.0, 1.0, 0.0);
+
+            // position.z += noise*(ease(sin(t), 1.5))*0.5;
+            // position.xy += ((offset*2.0)-1.0)*0.25;
 
             v_uv = a_uv;
             v_color = a_color;
@@ -457,22 +458,8 @@ let sketch = async ({ gl, width, height }) => {
             },
             u_matrix: (stats, props) => {
                 let { u_time, u_index, u_length, u_random, u_resolution, u_scale } = props
-                let identity = mat4.identity([])
-                let scale = u_scale
-
-                let random = u_random.map((v) => map(v, 0, 1, -1, 1))
-                let t = Math.sin(u_time*PI*8.0)*random[0]*0.5
-                let offset = [t+0.75, t+0.75, t+0.75]
-                let point = vec3.mul([], vec3.normalize([], random), offset)
-
-                let start = [
-                    point[0],
-                    map(u_index, 0, u_length, -0.75, 0.75),
-                    point[2]
-                ]
-                let rot = mat4.rotate([], identity, u_time*PI*2.0, [0, 1, 0])
-                let tra = mat4.translate([], rot, start)
-                return mat4.scale([], tra, [scale, -scale, scale])
+                let tra = mat4.translate([], mat4.identity([]), [0, 0, 0])
+                return mat4.scale([], tra, [u_scale, -u_scale, u_scale])
             },
             u_projection: ({viewportWidth, viewportHeight}) => {
                 return mat4.perspective([],
@@ -486,9 +473,7 @@ let sketch = async ({ gl, width, height }) => {
             u_index: regl.prop('u_index'),
             u_length: regl.prop('u_length'),
             u_view: regl.prop('u_view'),
-            u_scale: regl.prop('u_scale'),
-            u_fft: regl.prop('u_fft'),
-            u_lookup: regl.prop('u_lookup')
+            u_scale: regl.prop('u_scale')
         },
         blend: {
             enable: true,
@@ -502,15 +487,8 @@ let sketch = async ({ gl, width, height }) => {
         primitive: 'triangles'
     })
 
-    let player = await load_sound(`/assets/2019_09_20.mp3`)
-    let fft = new Tone.FFT(N*N)
-    let fft_r = new Uint8Array(N*N)
-    player.connect(fft)
-    player.toMaster()
-    player.autostart = true
-    player.loop = true
 
-    let icosphere_elements = new Array(256)
+    let icosphere_elements = new Array(1)
         .fill({})
         .map(function(value, i, a) {
             return {
@@ -523,70 +501,40 @@ let sketch = async ({ gl, width, height }) => {
                 u_random: [rand(), rand(), rand()],
                 u_text: text,
                 u_index: i,
-                u_lookup: [(i%16)/16, Math.floor(i/(a.length-1))/16],
                 u_length: a.length,
-                u_scale: 0.0125
+                u_scale: 1.0
             }
         })
 
-    let render_random = [rand(), rand(), rand()]
+    return ({ playhead }) => {
+        regl.poll()
+        regl.clear({color: [...bgc, 1], depth: 1})
 
-    return {
-        begin() {
-            player.restart()
-        },
-        render({ playhead, frame }) {
-            regl.poll()
-            regl.clear({color: bgc, depth: 1})
+        regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target1024 })
+        regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target64 })
 
-            regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target1024 })
-            regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_target64 })
+        icosphere_target1024.use(() => {
+            icosphere_draw(icosphere_elements.map(function(value) {
+                return Object.assign(value, { u_time: playhead })
+            }))
+        })
 
-            if (frame%32 == 0) {
-                regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_trail0 })
-            }
-            if (frame%32 == 15) {
-                regl.clear({ color: bgc, depth: 1, framebuffer: icosphere_trail1 })
-            }
+        icosphere_target64.use(() => {
+            icosphere_draw(icosphere_elements.map(function(value) {
+                return Object.assign(value, { u_time: playhead })
+            }))
+        })
 
+        icosphere_render({
+            u_resolution: [width, height],
+            u_texture0: icosphere_target1024.color[0],
+            u_texture1: icosphere_target64.color[0],
+            u_text: text,
+            u_scale: [2, 2, 2],
+            u_time: playhead,
+            u_snap: rand()
+        })
 
-            let fft_v = fft.getValue()
-            for (let i = 0; i < fft_v.length; ++i) {
-                fft_r[i] = Math.floor(map(fft_v[i], -80, 0, 0, 255))
-            }
-            icosphere_fft.subimage(fft_r)
-
-            icosphere_trail0.use(() => {
-                icosphere_draw(icosphere_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: icosphere_fft }) })) })
-
-            icosphere_trail1.use(() => {
-                icosphere_draw(icosphere_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: icosphere_fft }) })) })
-
-            icosphere_target1024.use(() => {
-                icosphere_draw(icosphere_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: icosphere_fft })
-                }))
-            })
-
-            icosphere_target64.use(() => {
-                icosphere_draw(icosphere_elements.map(function(value) {
-                    return Object.assign(value, { u_time: playhead, u_fft: icosphere_fft })
-                }))
-            })
-
-            icosphere_render({
-                u_random: render_random,
-                u_resolution: [width, height],
-                u_texture0: frame%32 < 15 ? icosphere_trail0.color[0] : icosphere_trail1.color[0],
-                u_texture1: icosphere_target64.color[0],
-                u_scale: [2, 2, 2],
-                u_time: playhead,
-                u_snap: rand(),
-                u_fft: icosphere_fft
-            })
-        }
     }
 }
 
