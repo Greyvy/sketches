@@ -120,8 +120,8 @@ let sketch = async ({ gl, width, height }) => {
     const PI = Math.PI
     const TAU = PI * 2
 
-    let N_LINES  = 8
-    let N_POINTS = 16
+    let N_LINES  = 64
+    let N_POINTS = 128
     let N_RES_POINTS = N_POINTS*4+4
     let N_RES_MITRES = N_POINTS*2+2
 
@@ -353,6 +353,7 @@ let sketch = async ({ gl, width, height }) => {
         varying vec2 v_uv;
 
         uniform float u_time, u_snap;
+        uniform vec3 u_spot;
         uniform vec2 u_resolution;
         uniform sampler2D u_texture0;
         uniform sampler2D u_texture1;
@@ -367,7 +368,15 @@ let sketch = async ({ gl, width, height }) => {
 
             vec4 base = texture2D(u_texture0, uv);
             vec4 lowr = texture2D(u_texture1, uv);
+
+            float r = 0.00125;
+            vec2 dist = st-u_spot.xy;
+            vec3 circle = vec3(1.0-smoothstep(r-(r*0.01),
+                                              r+(r*0.01),
+                                              dot(dist, dist)*4.0));
+
             vec4 color = base;
+            color.rgb = circle;
 
             gl_FragColor = vec4(color);
         }
@@ -407,12 +416,13 @@ let sketch = async ({ gl, width, height }) => {
                 return mat4.perspective([],
                     PI/2, viewportWidth/viewportHeight, 0.01, 50)
             },
-            u_resolution: regl.prop('u_resolution'),
-            u_texture0: regl.prop('u_texture0'),
-            u_texture1: regl.prop('u_texture1'),
+            u_spot: regl.prop('u_spot'),
             u_time: regl.prop('u_time'),
             u_snap: regl.prop('u_snap'),
-            u_scale: regl.prop('u_scale')
+            u_scale: regl.prop('u_scale'),
+            u_texture0: regl.prop('u_texture0'),
+            u_texture1: regl.prop('u_texture1'),
+            u_resolution: regl.prop('u_resolution')
         },
         blend: {
             enable: true,
@@ -435,7 +445,7 @@ let sketch = async ({ gl, width, height }) => {
         attribute float a_mitre;
 
         uniform mat4 u_projection, u_view, u_matrix;
-        uniform vec3 u_random;
+        uniform vec3 u_random, u_spot;
         uniform vec2 u_resolution;
         uniform float u_time, u_index, u_length, u_linewidth, u_fakez;
 
@@ -462,6 +472,15 @@ let sketch = async ({ gl, width, height }) => {
 
             vec2 st = fake_frag_coord.xy/u_resolution.xy;
 
+            float n = iqnoise(st+vec2(sin(u_time*PI), u_random.y), 0.0, 1.0);
+
+            // position.x += 1.0-pow(n, 1.0-distance(0.5, u_random.y))*2.0;
+
+            float dist = distance(position.xy, 1.0-u_spot.xy*2.0);
+            dist = (1.0+dist)/2.0;
+
+            position.x += clamp(pow(1.0-dist, 4.0), 0.0, 1.0)*(1.0-n*2.0);
+
             float line_width = u_linewidth;
             vec2 p = position.xy+vec2(normal*line_width/2.0*mitre);
 
@@ -477,7 +496,7 @@ let sketch = async ({ gl, width, height }) => {
         #define PI 3.141592653589793
 
         uniform float u_time;
-        uniform vec3 u_random;
+        uniform vec3 u_random, u_spot;
         uniform vec2 u_resolution;
         uniform vec4 u_background;
 
@@ -539,6 +558,7 @@ let sketch = async ({ gl, width, height }) => {
                 return mat4.perspective([], PI/2, width/height, 0.01, 50)
             },
             u_time: regl.prop('u_time'),
+            u_spot: regl.prop('u_spot'),
             u_index: regl.prop('u_index'),
             u_fakez: regl.prop('u_fakez'),
             u_random: regl.prop('u_random'),
@@ -560,6 +580,7 @@ let sketch = async ({ gl, width, height }) => {
         count: N_RES_POINTS/2
     })
 
+    let spot = [rand(), rand(), rand()]
     let lines = new Array(N_LINES)
         .fill({})
         .map(function(value, i, a) {
@@ -567,10 +588,11 @@ let sketch = async ({ gl, width, height }) => {
                 u_time: 0,
                 u_index: i,
                 u_random: [rand(), rand(), rand()],
+                u_spot: spot,
                 u_length: a.length,
                 u_resolution: [width, height],
                 u_background: [...bgc, 1],
-                u_linewidth: 0.0125,
+                u_linewidth: 0.006,
                 u_fakez: 0.0
             }
         })
@@ -677,6 +699,7 @@ let sketch = async ({ gl, width, height }) => {
             u_texture0: line_target1024.color[0],
             u_texture1: line_target64.color[0],
             u_time: playhead,
+            u_spot: spot,
             u_snap: rand(),
             u_scale: [2, 2, 2],
             u_translate: [0, 0, 0],
