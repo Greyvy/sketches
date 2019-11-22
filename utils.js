@@ -1,3 +1,4 @@
+let Tone = require('tone')
 
 let clamp = (v, min, max) => v < min ? min : v > max ? max : v
 
