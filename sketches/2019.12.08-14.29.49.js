@@ -61,7 +61,7 @@ let sketch = async ({ gl, width, height }) => {
     })
 
     let plane = plane_make(1, 1, 16, 16)
-    let torus = torus_make({ majorSegments: 32, minorSegments: 64, arc: PI })
+    let torus = torus_make({ majorSegments: 32, minorSegments: 64, arc: TAU*rand() })
     let bgc = hsluv.hsluvToRgb([0, 0, rand()*100])
 
     let render_target1024 = regl.framebuffer({
