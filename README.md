@@ -13,6 +13,8 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [GLSL noise](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83)
 - [Voronoise by inigo quilez](http://iquilezles.org/www/articles/voronoise/voronoise.htm)
 - [Fluid simulation for dummies](https://mikeash.com/pyblog/fluid-simulation-for-dummies.html)
+- [Orbit controls](https://github.com/Jam3/orbit-controls)
+- [Angle normals](https://github.com/mikolalysenko/angle-normals)
 
 ## Inspiration & tutorials
 - [Signed distance functions by Jamie Wong](http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/)
@@ -44,4 +46,6 @@ A collection of sketches in Javascript using [canvas-sketch](https://github.com/
 - [dynamic de Jong attracter in WebGL](https://observablehq.com/@mbostock/making-webgl-dance)
 - [Clifford attractor with additive blending in WebGL](https://observablehq.com/@mbostock/clifford-attractor-iii)
 - [de Jong attractor II](https://observablehq.com/@mbostock/de-jong-attractor-ii)
+- [Feedback loops](https://docs.lost.show/blog/feedbackloops/)
+- [Greg Tatum’s work](https://gregtatum.com/)
 
