@@ -284,7 +284,7 @@ let sketch = async ({ gl, width, height }) => {
 
         void main() {
             vec2 st = gl_FragCoord.xy/u_resolution.xy;
-            vec4 color = vec4(u_color, 1.0); // vec4(1.0-vec3(u_background), 1.0);
+            vec4 color = vec4(u_color, 1.0);
             vec3 light = vec3(0.0);
 
             vec3 U = dFdx(v_vertex.xyz);
