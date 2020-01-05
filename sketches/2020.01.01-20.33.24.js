@@ -31,7 +31,7 @@ const N_LIGHTS = 4
 let settings = {
     context: 'webgl',
     animate: true,
-    duration: 7.47,
+    duration: 7.48,
     dimensions: [ 1024, 1024 ],
     attributes: {
         antialiase: true
