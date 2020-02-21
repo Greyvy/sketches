@@ -32,7 +32,7 @@ const N_INSTANCES = N*N
 let settings = {
     context: 'webgl',
     animate: true,
-    duration: 8,
+    duration: 8.18,
     dimensions: [ 1024, 1024 ],
     attributes: {
         antialiase: true
@@ -161,7 +161,7 @@ let sketch = async ({ gl, width, height }) => {
         void main() {
             vec2 uv = v_uv;
 
-
+            vec4 fft = texture2D(u_fft, uv);
             float a = u_time*PI*2.0;
             vec2 s = (uv*vec2(8.0))+vec2(sin(a), cos(a));
             vec2 t = (uv*vec2(8.0))-vec2(cos(a), sin(a));
@@ -174,9 +174,9 @@ let sketch = async ({ gl, width, height }) => {
 
             vec4 color = vec4(0.98*texture2D(u_feedback, uv).rgb, 0.90);
 
-            float r = texture2D(u_feedback, uv+(s*0.0000125)).r;
-            float g = texture2D(u_feedback, uv-(t*0.0000125)).g;
-            float b = texture2D(u_feedback, uv+(t*0.0000125)).b;
+            float r = texture2D(u_feedback, uv+(fft.rg*0.00125)).r;
+            float g = texture2D(u_feedback, uv-(fft.gb*0.00125)).g;
+            float b = texture2D(u_feedback, uv+(fft.zw*0.00125)).b;
 
             color.r = r;
             color.g = g;
@@ -505,10 +505,6 @@ let sketch = async ({ gl, width, height }) => {
                 y: simplex.noise3D(performance.now(), point.x, point.y)
             }
 
-            // offsets[0][0] += (1.0-rand()*2.0)*0.125
-            // offsets[0][1] += (1.0-rand()*2.0)*0.125
-            // offsets[0][2] += (1.0-rand()*2.0)*0.125
-
             for (let i = 0; i < N_INSTANCES; ++i) {
                 let pos = vec3.fromValues(...offsets[i])
 
@@ -522,25 +518,17 @@ let sketch = async ({ gl, width, height }) => {
                 velocities[i][0] += vx
                 velocities[i][1] += vy
 
-                // offsets[i][0] += velocities[i][0]
-                // offsets[i][1] += velocities[i][1]
-                // offsets[i][2] += velocities[i][2]
-
-                // offsets[i][0] += (1.0-rand()*2.0)*0.0125
-                // offsets[i][1] += (1.0-rand()*2.0)*0.0125
-                // offsets[i][2] += (1.0-rand()*2.0)*0.0125
-
                 if (i % 32 === 0) {
-                    offsets[i][0] += (1.0-rand()*2.0)*0.015
-                    offsets[i][1] += (1.0-rand()*2.0)*0.015
-                    offsets[i][2] += (1.0-rand()*2.0)*0.015
+                    offsets[i][0] += (1.0-rand()*2.0)*(fft_r[i+0]/255)*0.025
+                    offsets[i][1] += (1.0-rand()*2.0)*(fft_r[i+1]/255)*0.025
+                    offsets[i][2] += (1.0-rand()*2.0)*(fft_r[i+2]/255)*0.025
                 } else {
                     offsets[i][0] = lerp(offsets[i][0], offsets[i-1][0], 0.16)
                     offsets[i][1] = lerp(offsets[i][1], offsets[i-1][1], 0.16)
                     offsets[i][2] = lerp(offsets[i][2], offsets[i-1][2], 0.16)
                 }
 
-                // scales[i] = ((2.0+((1.0-(d/8.0))*4.0)))*0.0125
+                scales[i] = ((2.0+((1.0-(d/8.0))*4.0)))*0.0125
 
                 if (1.0-(d/8.0) < 0.0) {
                     offsets[i] = pos_make()
