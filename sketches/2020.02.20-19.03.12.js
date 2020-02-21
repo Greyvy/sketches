@@ -498,7 +498,6 @@ let sketch = async ({ gl, width, height }) => {
             fft_tex.subimage(fft_r)
             sphere_fft.subdata(fft_r)
 
-
             let lights = lights_update(playhead)
             point = {
                 x: simplex.noise2D(performance.now(), point.x),
